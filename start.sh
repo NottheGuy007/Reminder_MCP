@@ -41,10 +41,21 @@ echo "=================================================="
 echo "Starting Reminder Notifier..."
 echo "=================================================="
 
-# Start notifier in foreground (this keeps the container running)
-python reminder_notifier.py
+# Start notifier in background
+python reminder_notifier.py &
+NOTIFIER_PID=$!
 
-# If notifier exits, stop MCP server too
-echo "Notifier stopped, shutting down..."
+echo "Notifier started with PID: $NOTIFIER_PID"
+
+echo "=================================================="
+echo "Starting Web Server (keeps Render port open)..."
+echo "=================================================="
+
+# Start web server in foreground (this keeps the container running)
+python web_server.py
+
+# If web server exits, stop other processes
+echo "Web server stopped, shutting down..."
 kill $MCP_PID 2>/dev/null || true
+kill $NOTIFIER_PID 2>/dev/null || true
 wait
